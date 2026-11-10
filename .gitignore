@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.vscode/
+
+*.log
+.pytest_cache/
+repair_backups/

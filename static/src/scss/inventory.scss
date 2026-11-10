@@ -1,0 +1,169 @@
+// Rack headings wrap instead of hiding their final words behind ellipses.
+.o_ar_racks_table {
+    width: 100%;
+    .o_list_renderer { overflow-x: auto; }
+    .o_list_table {
+        min-width: 1100px;
+        thead th[data-name] {
+            vertical-align: middle;
+            white-space: normal !important;
+            .text-truncate {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+                overflow-wrap: anywhere;
+            }
+        }
+        th[data-name="supervisor_id"] { min-width: 155px; }
+        th[data-name="nbrEmp"] { min-width: 145px; }
+        th[data-name="ummondatory"], th[data-name="dummondatory"] { min-width: 110px; }
+    }
+}
+
+// Apply to every inventory model's list, including embedded lists and dialogs.
+// The numeric header's spacer and flex sizing otherwise clip wrapped words.
+.o_list_renderer.o_ar_readable_headers {
+    overflow-x: auto;
+    > .o_list_table {
+        table-layout: auto !important;
+        min-width: 100%;
+        > thead > tr > th[data-name] {
+            height: auto !important;
+            min-width: 7rem !important;
+            vertical-align: middle;
+            white-space: normal !important;
+            > .d-flex {
+                min-width: 0;
+                width: 100%;
+                height: auto !important;
+                > .text-truncate {
+                    flex: 1 1 0 !important;
+                    min-width: 0 !important;
+                    max-width: none !important;
+                    width: auto !important;
+                    white-space: normal !important;
+                    overflow: visible !important;
+                    text-overflow: clip !important;
+                    overflow-wrap: anywhere;
+                    word-break: normal;
+                    line-height: 1.4;
+                }
+                > .o_list_header_label_spacer { display: none; }
+                > .o_list_sortable_icon { flex-shrink: 0; }
+            }
+            &[data-name="nbrEmp"], &[data-name="location_count"] {
+                min-width: 12rem !important;
+            }
+            &:has(.o_handle_cell), &[data-name="sequence"] {
+                min-width: 2rem !important;
+            }
+        }
+    }
+}
+
+.o_ar_reconcile_zone table thead th {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+// Keep the GO/NOGO configuration list outside the form's label-column layout.
+.o_ar_go_responsibles_table {
+    display: block;
+    width: 100%;
+
+    .o_list_renderer { overflow-x: auto; }
+    .o_list_table {
+        min-width: 600px;
+        th[data-name="name"] { width: 35% !important; }
+        th[data-name="validator_ids"] { width: 55% !important; }
+        th[data-name="active"] { min-width: 80px; }
+        th .text-truncate { white-space: normal !important; }
+    }
+}
+
+// Keep complete zone headings readable, including on narrow screens.
+.o_ar_full_flow .o_list_table tbody tr.o_data_row {
+    &.text-success > td { background-color: rgba(25, 135, 84, .09); }
+    &.text-warning > td { background-color: rgba(245, 158, 11, .14); color: #8a5200; }
+    &.text-danger > td { background-color: rgba(220, 53, 69, .09); }
+}
+.o_ar_inventory_zone_table .o_list_table thead th[data-name] {
+    vertical-align: middle;
+
+    .text-truncate {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        overflow-wrap: anywhere;
+    }
+}
+
+// Full-width checklist: do not let the form's two-column group layout squeeze
+// the instructions and action into a narrow sidebar.
+.o_ar_post_scan {
+    .o_ar_post_scan_heading { margin-bottom: 20px; }
+    .o_ar_post_scan_heading p { max-width: 900px; line-height: 1.6; }
+    .o_ar_post_scan_table, .o_ar_post_scan_history {
+        display: block;
+        width: 100%;
+        .o_list_renderer { overflow-x: auto; }
+        .o_list_table {
+            margin-bottom: 0;
+            th { background: var(--o-control-panel-background-color, #f5f7fa); }
+            th, td { padding: 12px 14px; vertical-align: top; }
+            th .text-truncate { white-space: normal !important; }
+            td[name="instruction"], td[name="comment"] {
+                white-space: normal;
+                overflow-wrap: anywhere;
+                .o_field_widget { white-space: normal; }
+            }
+        }
+    }
+    .o_ar_post_scan_table .o_list_table {
+        min-width: 1000px;
+        th[data-name="sequence"] { width: 50px !important; }
+        th[data-name="instruction"] { width: 36% !important; }
+        th[data-name="responsible_id"] { width: 17% !important; }
+        th[data-name="answer"] { width: 90px !important; }
+        th[data-name="comment"] { width: 20% !important; }
+        th[data-name="attachment_ids"] { width: 17% !important; }
+        .o_field_many2many_binary { max-width: 100%; }
+    }
+    .o_ar_post_scan_actions {
+        display: flex;
+        justify-content: flex-end;
+        padding-top: 18px;
+        .btn { padding: 10px 18px; white-space: normal; }
+    }
+    .o_ar_post_scan_history_heading {
+        margin-top: 28px;
+        padding-top: 22px;
+        margin-bottom: 14px;
+        border-top: 1px solid var(--border-color, #e2e6ec);
+        h4 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    }
+    @media (max-width: 767px) {
+        padding: 16px;
+        .o_ar_post_scan_actions .btn { width: 100%; }
+    }
+}
+
+.o_ar_scan_section {
+    margin-top: 24px;
+    padding: 24px;
+    border: 1px solid var(--border-color, #e2e6ec);
+    border-radius: 12px;
+    background: var(--o-view-background-color, #fff);
+    h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+    > .o_field_widget { width: 100%; }
+    .o_ar_empty_state { padding: 20px; background: #f5f7fa; border-radius: 8px; color: #64748b; }
+    .o_ar_reconcile_zone {
+        margin-top: 20px;
+        h4 { font-size: 15px; font-weight: 600; }
+        small { margin-left: 12px; color: #64748b; font-weight: 400; }
+        th { background: #f5f7fa; color: #475569; font-size: 12px; padding: 12px; }
+        td { padding: 14px 12px; vertical-align: top; }
+        td > div + div { margin-top: 10px; }
+        .badge { white-space: normal; font-weight: 500; padding: 7px 10px; }
+    }
+}

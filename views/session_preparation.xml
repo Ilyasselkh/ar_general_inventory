@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_inventory_approver_list" model="ir.ui.view">
+    <field name="name">inventory.approver.list</field><field name="model">araymond.inventory.approver</field>
+    <field name="arch" type="xml"><list editable="bottom"><field name="phase"/><field name="user_ids" widget="many2many_tags" options="{'no_create': True}"/><field name="active"/></list></field>
+  </record>
+  <record id="action_inventory_approvers" model="ir.actions.act_window">
+    <field name="name">Responsables</field><field name="res_model">araymond.inventory.approver</field><field name="view_mode">list</field>
+  </record>
+  <menuitem id="menu_inventory_approvers" name="Responsables" parent="menu_inventory_settings" action="action_inventory_approvers" sequence="20"/>
+  <record id="menu_inventory_approvers" model="ir.ui.menu">
+    <field name="active" eval="False"/>
+  </record>
+
+  <record id="view_session_preparation_form" model="ir.ui.view">
+    <field name="name">inventory.session.preparation.form</field><field name="model">araymond.maininvsession</field>
+    <field name="arch" type="xml">
+      <form delete="false">
+        <header>
+          <button name="action_validate_preparation" type="object" string="Valider la préparation" class="btn-primary" invisible="state != 'Preparation'"/>
+          <button name="action_confirm_racks" type="object" string="Confirmer les racks et affectations" class="btn-primary" invisible="state != 'Racks'"/>
+          <button name="action_validate_day" type="object" string="Valider les contrôles avant scan" class="btn-primary" invisible="state != 'InventoryDay'"/>
+          <button name="action_load_file" type="object" string="Charger LX03" class="btn-primary" invisible="state != 'LX03'"/>
+          <button name="action_validate_lx03" type="object" string="Valider LX03 et démarrer le scan" class="btn-primary" invisible="state != 'LX03' or not file_loaded"/>
+          <button name="action_open_scan" type="object" string="Scans, historique et bilan" class="btn-primary" invisible="state not in ('Scan', 'Fermeture')"/>
+          <button name="action_open_legacy_configuration" type="object" string="Ouvrir la configuration historique" invisible="preparation_workflow or not id"/>
+          <field name="state" widget="statusbar" statusbar_visible="Preparation,Racks,InventoryDay,LX03,Scan,Fermeture"/>
+        </header>
+        <sheet>
+          <field name="preparation_workflow" invisible="1"/><field name="file_loaded" invisible="1"/>
+          <group>
+            <field name="typesession" readonly="1"/><field name="datesession" readonly="state != 'Preparation'"/>
+            <field name="desc" required="preparation_workflow" readonly="state != 'Preparation'"/>
+          </group>
+          <notebook invisible="not preparation_workflow">
+            <page string="Préparation">
+              <p>Complétez les 18 points. Un responsable désigné dans Paramètres → Responsables doit valider cette checklist. Toute réponse NOK doit être expliquée.</p>
+              <field name="preparation_line_ids" nolabel="1" readonly="state != 'Preparation'">
+                <list editable="bottom" create="false" delete="false">
+                  <field name="sequence" readonly="1" force_save="1"/><field name="instruction" readonly="1" force_save="1"/>
+                  <field name="responsible_id" options="{'no_create': True}"/><field name="answer"/><field name="comment"/>
+                  <field name="attachment_ids" widget="many2many_binary"/>
+                </list>
+              </field>
+            </page>
+            <page string="Racks et équipes" invisible="state == 'Preparation'">
+              <p>Désignez les personnes des trois équipes pour chaque rack. Une même personne peut être affectée à plusieurs équipes, y compris aux trois. Les équipes Scan 1 et Scan 2 échangent leurs emplacements lors du contrôle croisé. L’équipe 3 intervient uniquement en cas d’écart.</p>
+              <field name="sess_records" nolabel="1" readonly="state != 'Racks'" context="{'form_view_ref': 'ar_general_inventory.view_araymond_inventory_session_form'}">
+                <list editable="bottom">
+                  <field name="rack"/><field name="supervisor_id" string="Responsable RACK" required="1"/>
+                  <field name="magasinPhysique"/><field name="magasinSAP"/><field name="nbrEmp"/><field name="level" required="1"/>
+                  <field name="scan1_user_ids" widget="many2many_tags" required="1" options="{'no_create': True}"/>
+                  <field name="scan2_user_ids" widget="many2many_tags" required="1" options="{'no_create': True}"/>
+                  <field name="scan3_user_ids" widget="many2many_tags" required="1" options="{'no_create': True}"/>
+                  <field name="typedegalia"/><field name="ummondatory" optional="hide"/><field name="dummondatory" optional="hide"/><field name="statusSession"/>
+                </list>
+              </field>
+            </page>
+            <page string="Jour d’inventaire — avant scan" invisible="state in ('Preparation', 'Racks')">
+              <field name="day_line_ids" nolabel="1" readonly="state != 'InventoryDay'">
+                <list editable="bottom" create="false" delete="false">
+                  <field name="sequence" readonly="1"/><field name="instruction" readonly="1"/>
+                  <field name="responsible_id" options="{'no_create': True}"/><field name="answer"/><field name="comment"/>
+                  <field name="attachment_ids" widget="many2many_binary"/>
+                </list>
+              </field>
+            </page>
+            <page string="Fichier LX03" invisible="state not in ('LX03', 'Scan', 'Fermeture')">
+              <group><field name="lx03_file" filename="lx03_filename" readonly="state != 'LX03'"/><field name="lx03_filename" invisible="1"/></group>
+              <field name="lxo3_records" readonly="1" nolabel="1">
+                <list create="false" delete="false"><field name="type_magasin"/><field name="emplacement"/><field name="article"/><field name="lot"/><field name="stock_total"/><field name="magasin"/></list>
+              </field>
+            </page>
+            <page string="Validations">
+              <field name="checklist_ids" readonly="1" nolabel="1">
+                <list create="false" delete="false"><field name="phase"/><field name="validated_by"/><field name="validated_at"/></list>
+              </field>
+            </page>
+          </notebook>
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="action_araymond_inventory" model="ir.actions.act_window">
+    <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_araymond_inventory_sessionsN_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_session_preparation_form')})]"/>
+  </record>
+  <record id="view_scan_preparation" model="ir.ui.view">
+    <field name="name">inventory.scan.preparation</field><field name="model">araymond.maininvsession</field>
+    <field name="inherit_id" ref="view_scan_session_form"/>
+    <field name="arch" type="xml">
+      <xpath expr="//sheet" position="inside">
+        <field name="preparation_workflow" invisible="1"/>
+        <group string="Équipe 3 — affectation en cas d’écart" invisible="not preparation_workflow or state != 'Scan' or not arbitration_zone_ids">
+          <field name="arbitration_zone_ids" nolabel="1">
+            <list editable="bottom" create="false" delete="false">
+              <field name="rack" readonly="1"/><field name="supervisor_id" readonly="1"/><field name="workflow_state" readonly="1"/>
+              <field name="scan3_user_ids" widget="many2many_tags" readonly="workflow_state != 'arbitration'" options="{'no_create': True}"/>
+            </list>
+          </field>
+        </group>
+        <field name="scans_completed" invisible="1"/>
+        <div class="o_ar_scan_section o_ar_post_scan" invisible="not preparation_workflow or state not in ('Scan', 'Fermeture') or (state != 'Fermeture' and not scans_completed)">
+          <div class="o_ar_post_scan_heading">
+            <h3>Jour d’inventaire — après scan</h3>
+            <p class="text-muted mb-0">Complétez les contrôles ci-dessous, puis faites-les valider par un responsable avant de clôturer la session.</p>
+          </div>
+          <field name="post_line_ids" class="o_ar_post_scan_table" nolabel="1" readonly="state == 'Fermeture'">
+            <list editable="bottom" create="false" delete="false">
+              <field name="validated_at" column_invisible="1"/><field name="sequence" readonly="1"/><field name="instruction" readonly="1"/>
+              <field name="responsible_id" readonly="validated_at" options="{'no_create': True}"/><field name="answer" readonly="validated_at"/><field name="comment" readonly="validated_at"/>
+              <field name="attachment_ids" widget="many2many_binary" readonly="validated_at"/>
+            </list>
+          </field>
+          <div class="o_ar_post_scan_actions" invisible="state != 'Scan'">
+            <button name="action_validate_post" type="object" string="Valider les contrôles après scan" class="btn-primary"/>
+          </div>
+          <div class="o_ar_post_scan_history_heading">
+            <h4>Historique des validations</h4>
+            <p class="text-muted mb-0">Responsables et dates de validation des étapes de la session.</p>
+          </div>
+          <field name="checklist_ids" class="o_ar_post_scan_history" readonly="1" nolabel="1">
+            <list create="false" delete="false"><field name="phase"/><field name="validated_by"/><field name="validated_at"/></list>
+          </field>
+        </div>
+      </xpath>
+    </field>
+  </record>
+  <record id="view_zone_preparation" model="ir.ui.view">
+    <field name="name">inventory.zone.preparation</field><field name="model">araymond.invsession</field>
+    <field name="inherit_id" ref="view_zone_team_workflow"/>
+    <field name="arch" type="xml">
+      <xpath expr="//sheet" position="inside">
+        <field name="preparation_workflow" invisible="1"/>
+        <group string="Affectations du rack" invisible="not preparation_workflow">
+          <field name="level" readonly="1"/><field name="scan1_user_ids" widget="many2many_tags" readonly="1"/><field name="scan2_user_ids" widget="many2many_tags" readonly="1"/>
+          <field name="scan3_user_ids" widget="many2many_tags" readonly="workflow_state != 'arbitration'"/>
+        </group>
+      </xpath>
+    </field>
+  </record>
+</odoo>

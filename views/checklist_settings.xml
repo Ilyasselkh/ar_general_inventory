@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data noupdate="1">
+    <record id="instruction_stop_movements" model="araymond.inventory.instruction"><field name="sequence">10</field><field name="instruction">Les mouvements de stock de la zone sont arrêtés.</field></record>
+    <record id="instruction_locations_ready" model="araymond.inventory.instruction"><field name="sequence">20</field><field name="instruction">Les emplacements et les étiquettes sont identifiés et accessibles.</field></record>
+    <record id="instruction_teams_ready" model="araymond.inventory.instruction"><field name="sequence">30</field><field name="instruction">Les équipes disposent des consignes et du matériel de scan.</field></record>
+  </data>
+  <record id="view_checklist_instruction_list" model="ir.ui.view">
+    <field name="name">araymond.inventory.instruction.list</field><field name="model">araymond.inventory.instruction</field>
+    <field name="arch" type="xml"><list editable="bottom"><field name="sequence" widget="handle"/><field name="instruction"/><field name="active"/></list></field>
+  </record>
+  <record id="view_checklist_instruction_form" model="ir.ui.view">
+    <field name="name">araymond.inventory.instruction.form</field><field name="model">araymond.inventory.instruction</field>
+    <field name="arch" type="xml"><form><sheet><group><field name="instruction"/><field name="sequence"/><field name="active"/></group></sheet></form></field>
+  </record>
+  <record id="action_checklist_instructions" model="ir.actions.act_window">
+    <field name="name">Consignes de checklist</field><field name="res_model">araymond.inventory.instruction</field><field name="view_mode">list,form</field>
+    <field name="context">{'active_test': False}</field>
+  </record>
+  <menuitem id="menu_inventory_settings" name="Paramètres" parent="menu_araymond_root" sequence="90" groups="group_show_settings_menu"/>
+  <menuitem id="menu_checklist_instructions" name="Consignes de checklist" parent="menu_inventory_settings" action="action_checklist_instructions" sequence="10"/>
+  <record id="menu_checklist_instructions" model="ir.ui.menu">
+    <field name="active" eval="False"/>
+  </record>
+
+  <record id="view_scan_session_list" model="ir.ui.view">
+    <field name="name">araymond.maininvsession.scan.list</field><field name="model">araymond.maininvsession</field>
+    <field name="arch" type="xml"><list create="false" delete="false"><field name="datesession"/><field name="typesession"/><field name="desc"/><field name="state"/></list></field>
+  </record>
+  <record id="view_scan_session_form" model="ir.ui.view">
+    <field name="name">araymond.maininvsession.scan.form</field><field name="model">araymond.maininvsession</field>
+    <field name="arch" type="xml">
+      <form create="false" delete="false">
+        <header>
+          <button name="action_open_configuration" string="Configurer la session" type="object" groups="base.group_system" invisible="state in ('Scan', 'Fermeture')"/>
+          <button name="action_open_configuration" string="Modifier" type="object" class="btn-success" groups="base.group_system" invisible="state != 'Scan'"/>
+          <button name="action_close_scan" string="Clôturer" type="object" class="btn-danger" invisible="state != 'Scan'"/>
+          <button name="action_validate_session_checklist" string="Valider" type="object" class="btn-primary" invisible="state != 'Checklist'"/>
+          <field name="state" widget="statusbar" readonly="1"/>
+        </header>
+        <sheet>
+          <group><field name="desc" readonly="1"/><field name="datesession" readonly="1"/><field name="typesession" readonly="1"/></group>
+          <div class="alert alert-info" invisible="sess_records">Cette session n’a pas encore de zone. Utilisez « Configurer la session » pour charger SAP et définir les zones, les superviseurs et les équipes.</div>
+          <div invisible="state != 'Checklist'">
+            <p>Remplissez les checklists puis cliquez sur Valider. Chaque superviseur valide ses zones. Le scan démarre lorsque toutes les zones actives sont validées.</p>
+            <field name="checklist_line_ids" nolabel="1" domain="[('zone_id.statusSession', '=', True)]" class="o_ar_inventory_zone_table">
+              <list editable="bottom" create="false" delete="false">
+                <field name="zone_id" readonly="1"/>
+                <field name="instruction" readonly="1"/>
+                <field name="validated" column_invisible="1"/>
+                <field name="answer" readonly="validated"/>
+                <field name="comment" readonly="validated"/>
+              </list>
+            </field>
+          </div>
+          <field name="scan_count_ids" invisible="state not in ('Scan', 'Fermeture')" readonly="1" nolabel="1" options="{'no_open': True}" class="o_ar_inventory_zone_table" context="{'form_view_ref': 'ar_general_inventory.view_araymond_inventory_form'}">
+            <list create="false" edit="false" delete="false" default_order="emplacement,branch_id">
+              <field name="emplacement" string="Emplacement"/>
+              <field name="su" string="Nombre d’enregistrements"/>
+              <field name="branch_id" string="Équipe"/>
+              <field name="ok_done" column_invisible="1"/>
+              <button name="action_view_form_inv" type="object" string="Scanner" class="btn-primary" invisible="ok_done or parent.state == 'Fermeture'"/>
+            </list>
+          </field>
+          <div class="o_ar_scan_section" invisible="state not in ('Scan', 'Fermeture')">
+            <h3>Historique des comptages</h3>
+            <field name="closure_report_html" widget="html" nolabel="1" readonly="1" invisible="not closure_report_html"/>
+            <p class="text-muted">Les passages terminés restent consultables pour chaque équipe.</p>
+            <div class="o_ar_empty_state" invisible="scan_history_ids">Aucun comptage terminé pour le moment.</div>
+            <field name="scan_history_ids" invisible="not scan_history_ids" nolabel="1" readonly="1" options="{'no_open': True}" class="o_ar_inventory_zone_table">
+              <list create="false" edit="false" delete="false" default_order="emplacement,id">
+                <field name="emplacement"/>
+                <field name="count_phase" string="Passage"/>
+                <field name="branch_id" string="Équipe"/>
+                <field name="su" string="Nombre d’enregistrements"/>
+                <field name="emplacementVide" string="Emplacement vide"/>
+              </list>
+            </field>
+          </div>
+          <div class="o_ar_scan_section" invisible="state not in ('Scan', 'Fermeture')">
+            <h3>Rapprochement des équipes et SAP</h3>
+            <p class="text-muted">Suivez les résultats par emplacement et les écarts avec le stock SAP.</p>
+            <field name="scan_reconciliation_html" widget="html" nolabel="1" readonly="1"/>
+          </div>
+          <field name="sess_records" invisible="state in ('Checklist', 'Scan', 'Fermeture')" readonly="1" nolabel="1" class="o_ar_inventory_zone_table" context="{'form_view_ref': 'ar_general_inventory.view_araymond_inventory_session_form'}">
+            <list create="false" delete="false" edit="false">
+              <field name="magasinPhysique"/><field name="rack"/><field name="magasinSAP"/><field name="supervisor_id"/><field name="state" string="État de la zone"/><field name="statusSession"/><field name="checklist_validated"/><field name="workflow_state"/>
+              <button name="action_my_counts" type="object" string="Scanner" class="btn-primary" invisible="workflow_state in ('draft', 'done') or state == 'Fermeture'"/>
+              <button name="action_open_zone" type="object" string="Rapprochement et détails"/>
+            </list>
+          </field>
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="action_araymond_scan_inventory" model="ir.actions.act_window">
+    <field name="name">Sessions à scanner</field><field name="res_model">araymond.maininvsession</field><field name="view_mode">list,form</field>
+    <field name="domain">[('state', '!=', 'Fermeture')]</field>
+    <field name="view_id" ref="view_scan_session_list"/>
+    <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_scan_session_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_scan_session_form')})]"/>
+  </record>
+  <!-- Replace old menu groups on upgrades as well as new installations. -->
+  <record id="menu_inventory_settings" model="ir.ui.menu">
+    <field name="group_ids" eval="[(6, 0, [ref('group_show_settings_menu')])]"/>
+  </record>
+  <record id="menu_checklist_instructions" model="ir.ui.menu">
+    <field name="group_ids" eval="[(6, 0, [ref('group_show_settings_menu')])]"/>
+  </record>
+</odoo>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ar_general_inventory.ScanConfirmationDialog">
+        <Dialog title="props.title" size="'md'">
+            <p t-esc="props.message"/>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="props.close">OK</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

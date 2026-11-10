@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="flow_configuration_preparation" model="araymond.flow.configuration"><field name="phase">preparation</field></record>
+  <record id="flow_configuration_risk" model="araymond.flow.configuration"><field name="phase">risk</field></record>
+  <record id="flow_configuration_simulation" model="araymond.flow.configuration"><field name="phase">simulation</field></record>
+  <record id="flow_configuration_day" model="araymond.flow.configuration"><field name="phase">day</field></record>
+  <record id="flow_configuration_inventory_day" model="araymond.flow.configuration"><field name="phase">inventory_day</field></record>
+  <record id="action_flow_template_inventory_day" model="ir.actions.act_window">
+    <field name="name">Checklist jour d’inventaire</field>
+    <field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field>
+    <field name="res_id" ref="flow_configuration_inventory_day"/>
+  </record>
+  <menuitem id="menu_flow_template_inventory_day" name="Checklist jour d’inventaire" parent="menu_inventory_settings" action="action_flow_template_inventory_day" sequence="34"/>
+  <record id="flow_configuration_export" model="araymond.flow.configuration"><field name="phase">export</field></record>
+  <record id="flow_configuration_go" model="araymond.flow.configuration"><field name="phase">go</field></record>
+  <record id="flow_configuration_pre" model="araymond.flow.configuration"><field name="phase">pre</field></record>
+  <record id="flow_configuration_post" model="araymond.flow.configuration"><field name="phase">post</field></record>
+  <record id="view_flow_configuration_form" model="ir.ui.view">
+    <field name="name">inventory.flow.configuration.form</field><field name="model">araymond.flow.configuration</field>
+    <field name="arch" type="xml">
+      <form create="false" delete="false"><sheet>
+        <group><field name="phase" readonly="1"/><field name="responsible_ids" widget="many2many_tags" options="{'no_create': True}"/></group>
+        <p class="text-muted">Tous les responsables affectés doivent valider la checklist. Configurez les éléments à reprendre dans les nouvelles sessions.</p>
+        <field name="template_ids" nolabel="1" context="{'default_configuration_id': id, 'default_phase': phase, 'active_test': False}">
+          <list editable="bottom" delete="false">
+            <field name="sequence" widget="handle"/><field name="name"/>
+            <field name="responsible_id" column_invisible="parent.phase not in ('preparation', 'inventory_day', 'pre', 'post')" options="{'no_create': True}"/>
+            <field name="responsible_ids" widget="many2many_tags" column_invisible="parent.phase != 'risk'" options="{'no_create': True}"/>
+            <field name="file_name" column_invisible="parent.phase not in ('day', 'export')"/>
+            <field name="warehouse" column_invisible="parent.phase != 'simulation'"/>
+            <field name="sap_warehouse" column_invisible="parent.phase != 'simulation'"/>
+            <field name="location_count" column_invisible="parent.phase != 'simulation'"/>
+            <field name="active"/>
+          </list>
+        </field>
+      </sheet></form>
+    </field>
+  </record>
+  <record id="action_flow_template_preparation" model="ir.actions.act_window">
+    <field name="name">Checklist de préparation</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_preparation"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_preparation" model="ir.ui.menu"><field name="name">Checklist de préparation</field></record>
+  <record id="action_flow_template_risk" model="ir.actions.act_window">
+    <field name="name">Checklist des risques et actions</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_risk"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_risk" model="ir.ui.menu"><field name="name">Checklist des risques et actions</field></record>
+  <record id="action_flow_template_simulation" model="ir.actions.act_window">
+    <field name="name">Checklist de simulation de stock</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_simulation"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_simulation" model="ir.ui.menu"><field name="name">Checklist de simulation de stock</field></record>
+  <record id="action_flow_template_day" model="ir.actions.act_window">
+    <field name="name">Checklist d’extraction</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_day"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_day" model="ir.ui.menu"><field name="name">Checklist d’extraction</field></record>
+  <record id="action_flow_template_export" model="ir.actions.act_window">
+    <field name="name">Checklist d’exportation des fichiers SAP</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_export"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_export" model="ir.ui.menu"><field name="name">Checklist d’exportation des fichiers SAP</field><field name="active" eval="False"/></record>
+  <record id="view_go_responsibles_configuration_form" model="ir.ui.view">
+    <field name="name">inventory.go.responsibles.configuration.form</field>
+    <field name="model">araymond.flow.configuration</field>
+    <field name="arch" type="xml">
+      <form create="false" delete="false"><sheet>
+        <separator string="Responsables GO/NOGO Inventaire"/>
+        <field name="phase" invisible="1"/>
+        <field name="go_responsible_ids" nolabel="1" class="o_ar_go_responsibles_table" context="{'active_test': False}">
+            <list editable="bottom" delete="false">
+              <field name="sequence" widget="handle"/>
+              <field name="name" string="Responsables"/>
+              <field name="validator_ids" string="Validateurs" widget="many2many_tags" options="{'no_create': True}"/>
+              <field name="active"/>
+            </list>
+        </field>
+        <p class="text-muted">Saisissez la fonction de chaque responsable et affectez les personnes qui doivent la valider. Chaque fonction apparaît dans le tableau GO/NOGO Inventaire.</p>
+      </sheet></form>
+    </field>
+  </record>
+  <record id="action_flow_template_go" model="ir.actions.act_window">
+    <field name="name">Responsables GO/NOGO Inventaire</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_go_responsibles_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_go"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_go" model="ir.ui.menu"><field name="name">Responsables GO/NOGO Inventaire</field></record>
+  <record id="action_flow_template_pre" model="ir.actions.act_window">
+    <field name="name">Checklist avant scan</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_pre"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_pre" model="ir.ui.menu"><field name="name">Checklist avant scan</field></record>
+  <record id="action_flow_template_post" model="ir.actions.act_window">
+    <field name="name">Checklist après scan</field><field name="res_model">araymond.flow.configuration</field>
+    <field name="view_mode">form</field><field name="view_id" ref="view_flow_configuration_form"/>
+    <field name="res_id" ref="flow_configuration_post"/><field name="domain">[]</field><field name="context">{}</field>
+  </record>
+  <record id="menu_flow_template_post" model="ir.ui.menu"><field name="name">Checklist après scan</field></record>
+  <function model="araymond.flow.configuration" name="initialize_checklists"/>
+</odoo>
+

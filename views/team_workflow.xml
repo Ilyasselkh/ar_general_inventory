@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+  <record id="view_main_teams" model="ir.ui.view">
+    <field name="name">araymond.maininvsession.teams</field>
+    <field name="model">araymond.maininvsession</field>
+    <field name="inherit_id" ref="view_araymond_inventory_parametres_main_form" />
+    <field name="arch" type="xml">
+      <xpath expr="//form" position="attributes">
+        <attribute name="create">true</attribute>
+      </xpath>
+      <xpath expr="//sheet" position="inside">
+        <group string="Équipes et branches de la session">
+          <field name="team_ids" nolabel="1" readonly="1">
+            <list create="false" edit="false" delete="false">
+              <field name="name" />
+            </list>
+          </field>
+        </group>
+      </xpath>
+      <xpath expr="//field[@name='sess_records']/list/field[@name='rack']" position="after">
+        <field name="supervisor_id" />
+      </xpath>
+    </field>
+  </record>
+  <record id="view_zone_team_workflow" model="ir.ui.view">
+    <field name="name">araymond.invsession.team.workflow</field>
+    <field name="model">araymond.invsession</field>
+    <field name="inherit_id" ref="view_araymond_inventory_session_form" />
+    <field name="arch" type="xml">
+      <xpath expr="//header" position="replace">
+        <header>
+          <button name="action_validate_checklist" type="object" string="Valider la checklist" class="btn-primary" invisible="state != 'Checklist' or checklist_validated" />
+          <button name="action_start_teams" type="object" string="Lancer les équipes" class="btn-primary" invisible="state == 'Fermeture' or not checklist_validated or workflow_state != 'draft'" />
+          <button name="action_my_counts" type="object" string="Emplacements par équipe" class="btn-primary" invisible="state == 'Fermeture' or workflow_state in ('draft', 'done')" />
+          <button name="action_start_arbitration" type="object" string="Affecter les écarts à l’arbitrage" invisible="state == 'Fermeture' or automatic_teams or workflow_state != 'arbitration'" />
+          <button name="action_close_invsession" type="object" string="Clôturer la zone" invisible="workflow_state != 'done' or state == 'Fermeture'" />
+          <field name="workflow_state" widget="statusbar" />
+        </header>
+      </xpath>
+      <xpath expr="//sheet" position="replace">
+        <sheet>
+          <field name="state" invisible="1" />
+          <div class="alert alert-success" invisible="state != 'Fermeture'">Zone clôturée : consultation des comptages et du rapprochement.</div>
+          <field name="mainsession_id" invisible="1" />
+          <group>
+            <field name="resume" readonly="1" />
+            <field name="supervisor_id" readonly="checklist_validated" />
+            <field name="statusSession" />
+            <field name="checklist_validated" />
+            <field name="validated_by" invisible="not checklist_validated" />
+            <field name="validated_at" invisible="not checklist_validated" />
+          </group>
+          <notebook>
+            <page string="Checklist de zone">
+              <p>Le superviseur valide une seule fois cette checklist pour la zone et la session. Chaque NOK exige un commentaire.</p>
+              <field name="checklist_ids" readonly="checklist_validated or state != 'Checklist'">
+                <list editable="bottom" create="false" delete="false" decoration-success="answer == 'ok'" decoration-danger="answer == 'nok'">
+                  <field name="sequence" column_invisible="1" />
+                  <field name="instruction" readonly="1" />
+                  <field name="answer" readonly="1" />
+                  <field name="validated" column_invisible="1" />
+                  <button name="action_answer_ok" type="object" string="OK" class="btn-outline-success" invisible="validated or answer == 'ok'" />
+                  <button name="action_answer_ok" type="object" string="✓ OK" class="btn-success" invisible="validated or answer != 'ok'" />
+                  <button name="action_answer_nok" type="object" string="NOK" class="btn-outline-danger" invisible="validated or answer == 'nok'" />
+                  <button name="action_answer_nok" type="object" string="✓ NOK" class="btn-danger" invisible="validated or answer != 'nok'" />
+                  <field name="comment" />
+                </list>
+              </field>
+            </page>
+            <page string="Répartition des emplacements">
+              <group>
+                <field name="magasinPhysique" readonly="checklist_validated" />
+                <field name="magasinSAP" readonly="checklist_validated" />
+                <field name="rack" readonly="checklist_validated" />
+                <field name="nbrEmp" readonly="checklist_validated" />
+                <field name="typedegalia" readonly="workflow_state != 'draft'" />
+                <field name="ummondatory" readonly="checklist_validated" />
+                <field name="dummondatory" readonly="checklist_validated" />
+              </group>
+              <p>Créez les emplacements. Équipe 1 et Équipe 2 sont créées automatiquement. Au lancement, les emplacements sont répartis en deux lots équilibrés ; les équipes échangent ensuite leurs lots pour le contrôle croisé.</p>
+              <field name="first_count_ids" readonly="workflow_state != 'draft'" context="{'default_mainsession_id': mainsession_id}">
+                <list editable="bottom">
+                  <field name="emplacement" required="1" />
+                  <field name="ok_done" readonly="1" />
+                  <field name="needs_arbitration" />
+                </list>
+              </field>
+            </page>
+            <page string="Branches de scan" invisible="not checklist_validated or workflow_state == 'draft'">
+              <field name="recs_scan" readonly="1">
+                <list create="false" edit="false" delete="false">
+                  <field name="branch_id" />
+                  <field name="count_phase" />
+                  <field name="emplacement" />
+                  <field name="ok_done" />
+                  <button name="action_view_form_inv" type="object" string="Scanner" invisible="ok_done or parent.state == 'Fermeture'" />
+                </list>
+              </field>
+            </page>
+            <page string="Rapprochement et SAP" invisible="workflow_state == 'draft'">
+              <group>
+                <field name="arbitration_team_id" domain="[('session_id', '=', mainsession_id)]" options="{'no_create': True}" invisible="workflow_state != 'arbitration'" readonly="automatic_teams" />
+              </group>
+              <p invisible="workflow_state != 'arbitration'">En cas d’écart, Équipe 3 est créée automatiquement et reçoit uniquement les emplacements à rescanner. Son résultat devient le résultat final.</p>
+              <field name="reconciliation" nolabel="1" />
+            </page>
+            <page string="Historique" name="closure_history" invisible="state != 'Fermeture'">
+              <div class="o_ar_scan_section">
+                <h3>Historique et bilan de clôture</h3>
+                <field name="history_report_html" widget="html" nolabel="1" readonly="1"/>
+              </div>
+            </page>
+          </notebook>
+          <field name="automatic_teams" invisible="1" />
+        </sheet>
+      </xpath>
+    </field>
+  </record>
+</odoo>

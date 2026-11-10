@@ -1,0 +1,22 @@
+<odoo>
+  <record id="scan_consultation_form" model="ir.ui.view">
+    <field name="name">inventory.scan.consultation</field>
+    <field name="model">araymond.inventory</field>
+    <field name="arch" type="xml">
+      <form string="Consulter le scan" create="false" edit="false" delete="false">
+        <sheet>
+          <group>
+            <group><field name="location_rack"/><field name="branch_id" options="{'no_open': True}"/><field name="count_phase"/><field name="emplacement"/><field name="ok_done"/></group>
+            <group><field name="um"/><field name="dum"/><field name="emplacementVide"/><field name="commentaire"/><field name="count_box_scanne"/></group>
+          </group>
+          <field name="su" nolabel="1" readonly="1" options="{'no_open': True}">
+            <list create="false" edit="false" delete="false">
+              <field name="ref"/><field name="qty"/><field name="lot"/><field name="hu"/><field name="of"/><field name="su"/><field name="typedegalia"/><field name="dum"/>
+            </list>
+          </field>
+        </sheet>
+        <footer><button string="Fermer" special="cancel"/></footer>
+      </form>
+    </field>
+  </record>
+</odoo>

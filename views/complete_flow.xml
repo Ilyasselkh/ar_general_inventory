@@ -1,0 +1,495 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_rack_flow_checklist" model="ir.ui.view">
+    <field name="name">rack.flow.checklist.form</field>
+    <field name="model">araymond.flow.checklist</field>
+    <field name="arch" type="xml">
+      <form create="false" delete="false">
+        <header><button name="action_validate" type="object" string="Valider la checklist" class="btn-primary" invisible="validated_at or not can_edit"/></header>
+        <sheet>
+          <group><field name="rack_label"/><field name="phase" readonly="1"/><field name="validated_at" invisible="1"/><field name="can_edit" invisible="1"/></group>
+          <p invisible="can_edit" class="text-muted">Les contrôles avant scan se remplissent à l’étape Scan. Les contrôles après scan se remplissent une fois les comptages et arbitrages de ce niveau terminés.</p>
+          <group string="Personnes qui vont scanner" invisible="phase != 'pre'">
+            <field name="scanners_locked" invisible="1"/>
+            <field name="available_scanner1_ids" invisible="1"/>
+            <field name="available_scanner2_ids" invisible="1"/>
+            <field name="available_scanner3_ids" invisible="1"/>
+            <field name="scanner1_ids" widget="many2many_tags" domain="[('id', 'in', available_scanner1_ids)]" readonly="scanners_locked or not can_edit" options="{'no_create': True, 'no_open': True}"/>
+            <field name="scanner2_ids" widget="many2many_tags" domain="[('id', 'in', available_scanner2_ids)]" readonly="scanners_locked or not can_edit" options="{'no_create': True, 'no_open': True}"/>
+            <field name="scanner3_ids" widget="many2many_tags" domain="[('id', 'in', available_scanner3_ids)]" readonly="scanners_locked or not can_edit" options="{'no_create': True, 'no_open': True}"/>
+          </group>
+          <field name="line_ids" context="{'default_checklist_id': id}" nolabel="1" readonly="not can_edit">
+            <list editable="bottom" decoration-success="answer == 'ok'" decoration-warning="answer == 'wait'" decoration-danger="answer == 'nok'">
+              <field name="description"/><field name="responsible_id"/><field name="answer"/><field name="comment"/><field name="attachment_ids" widget="many2many_binary"/>
+            </list>
+          </field>
+          <group><field name="validators_html" widget="html"/><field name="statuses_html" widget="html"/><field name="dates_html" widget="html"/></group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="view_flow_template_list" model="ir.ui.view">
+    <field name="name">view_flow_template_list</field>
+    <field name="model">araymond.flow.template</field>
+    <field name="arch" type="xml">
+      <list editable="bottom">
+        <field name="sequence" widget="handle" />
+        <field name="phase" />
+        <field name="name" />
+        <field name="file_name" />
+        <field name="is_lx03" />
+        <field name="warehouse" optional="hide" />
+        <field name="sap_warehouse" optional="hide" />
+        <field name="location_count" optional="hide" />
+        <field name="active" />
+      </list>
+    </field>
+  </record>
+  <record id="action_flow_template_preparation" model="ir.actions.act_window">
+    <field name="name">Préparation</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'preparation')]</field>
+    <field name="context">{'default_phase': 'preparation'}</field>
+  </record>
+  <menuitem id="menu_flow_template_preparation" name="Préparation" parent="menu_inventory_settings" action="action_flow_template_preparation" sequence="30" />
+  <record id="action_flow_template_risk" model="ir.actions.act_window">
+    <field name="name">Analyse des risques et actions</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'risk')]</field>
+    <field name="context">{'default_phase': 'risk'}</field>
+  </record>
+  <menuitem id="menu_flow_template_risk" name="Analyse des risques et actions" parent="menu_inventory_settings" action="action_flow_template_risk" sequence="31" />
+  <record id="action_flow_template_simulation" model="ir.actions.act_window">
+    <field name="name">Simulation de stock</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'simulation')]</field>
+    <field name="context">{'default_phase': 'simulation'}</field>
+  </record>
+  <menuitem id="menu_flow_template_simulation" name="Simulation de stock" parent="menu_inventory_settings" action="action_flow_template_simulation" sequence="32" />
+  <record id="action_flow_template_day" model="ir.actions.act_window">
+    <field name="name">Jour d’inventaire</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'day')]</field>
+    <field name="context">{'default_phase': 'day'}</field>
+  </record>
+  <menuitem id="menu_flow_template_day" name="Jour d’inventaire" parent="menu_inventory_settings" action="action_flow_template_day" sequence="33" />
+  <record id="action_flow_template_export" model="ir.actions.act_window">
+    <field name="name">Exportation des fichiers SAP</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'export')]</field>
+    <field name="context">{'default_phase': 'export'}</field>
+  </record>
+  <menuitem id="menu_flow_template_export" name="Exportation des fichiers SAP" parent="menu_inventory_settings" action="action_flow_template_export" sequence="34" />
+  <record id="action_flow_template_go" model="ir.actions.act_window">
+    <field name="name">GO/NOGO Inventaire</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'go')]</field>
+    <field name="context">{'default_phase': 'go'}</field>
+  </record>
+  <menuitem id="menu_flow_template_go" name="GO/NOGO Inventaire" parent="menu_inventory_settings" action="action_flow_template_go" sequence="35" />
+  <record id="action_flow_template_pre" model="ir.actions.act_window">
+    <field name="name">Checklist avant scan</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'pre')]</field>
+    <field name="context">{'default_phase': 'pre'}</field>
+  </record>
+  <menuitem id="menu_flow_template_pre" name="Checklist avant scan" parent="menu_inventory_settings" action="action_flow_template_pre" sequence="36" />
+  <record id="action_flow_template_post" model="ir.actions.act_window">
+    <field name="name">Checklist après scan</field>
+    <field name="res_model">araymond.flow.template</field>
+    <field name="view_mode">list</field>
+    <field name="domain">[('phase', '=', 'post')]</field>
+    <field name="context">{'default_phase': 'post'}</field>
+  </record>
+  <menuitem id="menu_flow_template_post" name="Checklist après scan" parent="menu_inventory_settings" action="action_flow_template_post" sequence="37" />
+  <record id="view_flow_teams" model="ir.ui.view">
+    <field name="name">view_flow_teams</field>
+    <field name="model">araymond.flow.team.config</field>
+    <field name="arch" type="xml">
+      <list editable="bottom">
+        <field name="slot" />
+        <field name="user_ids" widget="many2many_tags" options="{'no_create': True}" />
+      </list>
+    </field>
+  </record>
+  <record id="action_flow_teams" model="ir.actions.act_window">
+    <field name="name">Équipes de scan</field>
+    <field name="res_model">araymond.flow.team.config</field>
+    <field name="view_mode">list</field>
+  </record>
+  <menuitem id="menu_flow_teams" name="Équipes de scan" parent="menu_inventory_settings" action="action_flow_teams" sequence="15" />
+  <record id="view_flow_approval_list" model="ir.ui.view">
+    <field name="name">view_flow_approval_list</field>
+    <field name="model">araymond.flow.approval</field>
+    <field name="arch" type="xml">
+      <list decoration-warning="state == 'pending'" decoration-danger="state == 'rejected'" decoration-success="state == 'approved'" create="false" delete="false">
+        <field name="session_id" />
+        <field name="name" />
+        <field name="author_id" />
+        <field name="create_date" />
+        <field name="state" />
+        <field name="reviewer_id" />
+        <field name="reviewed_at" />
+        <button name="action_approve" type="object" string="Approuver" invisible="state in ('approved', 'recorded')" />
+      </list>
+    </field>
+  </record>
+  <record id="view_flow_approval_form" model="ir.ui.view">
+    <field name="name">view_flow_approval_form</field>
+    <field name="model">araymond.flow.approval</field>
+    <field name="arch" type="xml">
+      <form create="false" delete="false">
+        <header>
+          <button name="action_approve" type="object" string="Approuver" class="btn-primary" invisible="state == 'recorded'" />
+          <button name="action_reject" type="object" string="Refuser" invisible="state == 'recorded'" />
+          <field name="state" widget="statusbar" statusbar_visible="Draft,Preparation,Simulation,InventoryDay,PreScan,Scan,Fermeture" />
+        </header>
+        <sheet>
+          <group>
+            <field name="session_id" />
+            <field name="name" />
+            <field name="author_id" />
+            <field name="create_date" />
+            <field name="reviewer_id" />
+            <field name="reviewed_at" />
+            <field name="reason" />
+          </group>
+          <field name="details" nolabel="1" />
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="action_flow_approvals" model="ir.actions.act_window">
+    <field name="name">Historique des modifications</field>
+    <field name="res_model">araymond.flow.approval</field>
+    <field name="view_mode">list,form</field>
+  </record>
+  <menuitem id="menu_flow_approvals" name="Historique des modifications" parent="menu_inventory_settings" action="action_flow_approvals" sequence="10" />
+  <record id="menu_flow_approvals" model="ir.ui.menu">
+    <field name="active" eval="False" />
+  </record>
+  <record id="view_full_flow_session" model="ir.ui.view">
+    <field name="name">view_full_flow_session</field>
+    <field name="model">araymond.maininvsession</field>
+    <field name="arch" type="xml">
+      <form delete="false" class="o_ar_full_flow" js_class="ar_inventory_session_form">
+        <header>
+          <button name="action_next_flow" type="object" string="Étape suivante" class="btn-primary" invisible="not full_flow or state in ('Scan', 'Fermeture')" />
+          <button name="action_next_flow" type="object" string="Clôturer l’inventaire" class="btn-success" invisible="not full_flow or state != 'Scan'" />
+          <button name="action_refresh_flow" type="object" string="Actualiser les modèles" invisible="not full_flow or state == 'Fermeture'" />
+          <button name="action_mod_empl" string="Modifier" type="object" class="btn-danger" groups="base.group_system" invisible="not full_flow or state != 'Scan' or context.get('inventory_scan_menu', False)" />
+          <button name="action_open_configuration" type="object" string="Ouvrir le parcours historique" invisible="full_flow" />
+          <field name="state" widget="statusbar" statusbar_visible="Draft,Preparation,GoNoGo,InventoryDay,Scan,Fermeture" />
+        </header>
+        <sheet>
+          <field name="full_flow" invisible="1" />
+          <field name="pre_scan_ready" invisible="1" />
+          <h1>Inventaire général</h1>
+          <group>
+            <field name="desc" required="1" readonly="state == 'Fermeture'" />
+          </group>
+          <notebook invisible="not full_flow">
+            <page name="scan_in_progress" string="Scan en cours" invisible="context.get('inventory_scan_menu', False) or state != 'Scan' or not pre_scan_ready">
+              <group>
+                <group>
+                  <field name="resume" string="Info Session" readonly="1" />
+                </group>
+              </group>
+              <h1 style="color: green;">Scan en cours</h1>
+            </page>
+            <page name="scan_checklists" string="Checklists avant / après scan" invisible="context.get('inventory_scan_menu', False) or state not in ('Scan', 'Fermeture')">
+              <p class="text-muted">Renseignez ici les contrôles de chaque rack. La checklist après scan apparaît lorsque le comptage et les arbitrages du rack sont terminés.</p>
+              <button name="action_select_checklist_scope" type="object" string="Choisir / ajouter des racks" class="btn-secondary" invisible="state != 'Scan'"/>
+              <field name="visible_rack_check_ids" nolabel="1">
+                <list create="false" edit="false" delete="false">
+                  <field name="rack_label" />
+                  <field name="phase" />
+                  <field name="validators_html" widget="html" />
+                  <field name="statuses_html" widget="html" />
+                  <field name="dates_html" widget="html" />
+                  <button name="action_open_rack_checklist" type="object" string="Ouvrir la checklist" />
+                </list>
+              </field>
+            </page>
+            <page name="stage_inventory_day" string="Jour d’inventaire" invisible="context.get('inventory_scan_menu', False) or state in ('Draft', 'Preparation', 'GoNoGo')">
+              <notebook>
+                <page string="Checklist jour d’inventaire">
+                  <field name="flow_inventory_day_ids" nolabel="1" readonly="state == 'Fermeture'" context="{'default_session_id': id, 'default_phase': 'inventory_day'}">
+                    <list editable="bottom" create="true" delete="true" decoration-success="answer == 'ok'" decoration-warning="answer == 'wait'" decoration-danger="answer == 'nok'">
+                      <field name="description"/>
+                      <field name="responsible_id"/>
+                      <field name="answer"/>
+                      <field name="comment"/>
+                      <field name="attachment_ids" widget="many2many_binary"/>
+                    </list>
+                  </field>
+                </page>
+                <page string="Extraction">
+                  <field name="file_loaded" invisible="1" />
+                  <field name="flow_day_ids" nolabel="1" readonly="state == 'Fermeture'" context="{'default_session_id': id, 'default_phase': 'day'}">
+                    <list editable="bottom" create="true" delete="true">
+                      <field name="file_name" />
+                      <field name="description" />
+                      <field name="comment" />
+                      <field name="attachment_ids" widget="many2many_binary" />
+                    </list>
+                  </field>
+                  <separator string="Import LX03" />
+                  <group>
+                    <field name="lx03_filename" invisible="1" />
+                    <field name="lx03_file" string="Fichier LX03" filename="lx03_filename" readonly="state != 'InventoryDay'" required="state == 'InventoryDay'" />
+                    <field name="lx03_document_number" readonly="state != 'InventoryDay'" required="state == 'InventoryDay'" />
+                  </group>
+                  <button name="action_load_file" type="object" string="Charger" class="btn-primary" invisible="state != 'InventoryDay'" />
+                  <div invisible="not file_loaded">
+                    <separator string="Données importées du fichier LX03" />
+                    <field name="lxo3_records" readonly="1" nolabel="1">
+                      <list create="false" edit="false" delete="false" limit="80">
+                        <field name="type_magasin" string="Magasin" />
+                        <field name="magasin" string="Magasin SAP" />
+                        <field name="emplacement" />
+                        <field name="article" />
+                        <field name="lot" />
+                        <field name="stock_total" />
+                        <field name="unite_qty_base" />
+                        <field name="type_unite_stock" optional="show" />
+                        <field name="su" string="Unité de stock" optional="show" />
+                      </list>
+                    </field>
+                  </div>
+                </page>
+            <page string="Validations">
+              <field name="inventory_day_validation_ids" readonly="1" nolabel="1">
+                <list create="false" delete="false">
+                  <field name="rack_label" />
+                  <field name="phase" />
+                  <field name="validators_html" widget="html" />
+                  <field name="statuses_html" widget="html" />
+                  <field name="dates_html" widget="html" />
+                  <field name="validated_at" column_invisible="1" />
+                  <button name="action_validate" type="object" string="Valider la checklist" invisible="validated_at or parent.state == 'Fermeture'" />
+                </list>
+              </field>
+            </page>
+              </notebook>
+            </page>
+            <page name="stage_go" string="GO/NOGO Inventaire" invisible="context.get('inventory_scan_menu', False) or state in ('Draft', 'Preparation')">
+              <p class="text-muted">Les fonctions et leurs validateurs sont configurés dans Paramètres → Responsables GO/NOGO Inventaire. Tous les validateurs doivent signer avant de poursuivre.</p>
+              <field name="go_check_ids" nolabel="1" readonly="1">
+                <list create="false" edit="false" delete="false">
+                  <field name="go_role_name" string="Responsables"/>
+                  <field name="validators_html" string="Validateurs" widget="html"/>
+                  <field name="statuses_html" string="Statut par validateur" widget="html"/>
+                  <field name="dates_html" widget="html"/>
+                  <field name="validated_at" column_invisible="1"/>
+                  <button name="action_validate" type="object" string="Valider la checklist" invisible="validated_at or parent.state == 'Fermeture'"/>
+                </list>
+              </field>
+            </page>
+            <page name="stage_preparation" string="Préparation" invisible="context.get('inventory_scan_menu', False) or state == 'Draft'">
+              <group>
+                <field name="datesession" required="state != 'Draft'" readonly="state == 'Fermeture'" />
+              </group>
+              <notebook>
+              <page string="Checklist de préparation">
+              <field name="flow_preparation_ids" nolabel="1" readonly="state == 'Fermeture'" context="{'default_session_id': id, 'default_phase': 'preparation'}">
+                <list editable="bottom" create="true" delete="true" decoration-success="answer == 'ok'" decoration-warning="answer == 'wait'" decoration-danger="answer == 'nok'">
+                  <field name="description" />
+                  <field name="responsible_id" />
+                  <field name="answer" />
+                  <field name="comment" />
+                  <field name="attachment_ids" widget="many2many_binary" />
+                </list>
+              </field>
+            </page>
+            <page string="Racks">
+              <field name="configured_rack_ids" class="o_ar_racks_table" nolabel="1" readonly="state == 'Fermeture'">
+                <list editable="bottom">
+                  <field name="rack" />
+                  <field name="supervisor_id" string="Responsable du rack" />
+                  <field name="magasinPhysique" string="Magasin" />
+                  <field name="magasinSAP" />
+                  <field name="nbrEmp" string="Nombre d’emplacements" />
+                  <field name="level" />
+                  <field name="shift" />
+                  <field name="ummondatory" string="UM obligatoire" />
+                  <field name="dummondatory" string="DUM obligatoire" />
+                  <field name="statusSession" string="Statut" />
+                </list>
+              </field>
+            </page>
+            <page string="Affectation d’équipes">
+              <p class="text-muted">Ces affectations organisent la saisie et le contrôle. Les personnes autorisées à scanner sont définies séparément dans Paramètres → Équipes de scan.</p>
+              <div class="row">
+                <div class="col-12 col-md-6">
+                  <h4>Équipe de saisie</h4>
+                  <div class="row">
+                    <div class="col-8">
+                      <div class="fw-bold mb-2">Personnes</div>
+                      <field name="entry_user_ids" widget="many2many_tags" nolabel="1" readonly="state == 'Fermeture'" />
+                    </div>
+                    <div class="col-4">
+                      <label for="entry_shift" string="Shift" class="fw-bold mb-2" />
+                      <field name="entry_shift" nolabel="1" readonly="state == 'Fermeture'" />
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <h4>Équipe de contrôle</h4>
+                  <div class="row">
+                    <div class="col-8">
+                      <div class="fw-bold mb-2">Personnes</div>
+                      <field name="control_user_ids" widget="many2many_tags" nolabel="1" readonly="state == 'Fermeture'" />
+                    </div>
+                    <div class="col-4">
+                      <label for="control_shift" string="Shift" class="fw-bold mb-2" />
+                      <field name="control_shift" nolabel="1" readonly="state == 'Fermeture'" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </page>
+            <page string="Analyse des risques et actions" invisible="state == 'Draft'">
+              <field name="flow_risk_ids" nolabel="1" readonly="state == 'Fermeture'" context="{'default_session_id': id, 'default_phase': 'risk'}">
+                <list editable="bottom" create="true" delete="true">
+                  <field name="description" />
+                  <field name="responsible_ids" widget="many2many_tags" required="1" />
+                  <field name="due_date" required="1" />
+                  <field name="risk_closure" decoration-success="risk_closure == 'done'" decoration-danger="risk_closure == 'not_done'" />
+                  <field name="risk_level" decoration-danger="risk_level == 'high'" decoration-warning="risk_level == 'medium'" decoration-success="risk_level == 'low'" />
+                  <field name="comment" />
+                  <field name="attachment_ids" widget="many2many_binary" />
+                </list>
+              </field>
+            </page>
+            <page string="Simulation de stock">
+              <field name="flow_simulation_ids" nolabel="1" readonly="state == 'Fermeture'" context="{'default_session_id': id, 'default_phase': 'simulation'}">
+                <list editable="bottom" create="true" delete="true">
+                  <field name="warehouse" />
+                  <field name="sap_warehouse" />
+                  <field name="location_count" />
+                  <field name="comment" />
+                </list>
+              </field>
+            </page>
+            <page string="Validations">
+              <field name="preparation_validation_ids" readonly="1" nolabel="1">
+                <list create="false" delete="false">
+                  <field name="rack_label" />
+                  <field name="phase" />
+                  <field name="validators_html" widget="html" />
+                  <field name="statuses_html" widget="html" />
+                  <field name="dates_html" widget="html" />
+                  <field name="validated_at" column_invisible="1" />
+                  <button name="action_validate" type="object" string="Valider la checklist" invisible="validated_at or parent.state == 'Fermeture'" />
+                </list>
+              </field>
+            </page>
+              </notebook>
+            </page>
+            <page name="stage_scan_menu" string="Scan" invisible="not context.get('inventory_scan_menu', False) or state not in ('Scan', 'Fermeture')">
+              <div class="alert alert-danger" invisible="not unresolved_count_ids">Trois résultats différents : une validation du superviseur ou un nouveau scan est obligatoire avant clôture.</div>
+              <p class="text-muted" invisible="pre_scan_ready">Validez toutes les checklists avant scan pour afficher et créer les emplacements.</p>
+              <p class="text-muted" invisible="not pre_scan_ready">Cliquez sur Nouvel emplacement pour créer une ligne, puis sur Scanner. Scannez d’abord le code emplacement de quatre caractères, puis les UM/DUM obligatoires du rack avant les étiquettes. Les membres d’une même équipe partagent les lignes ; le contrôle croisé démarre après les premiers comptages des deux équipes.</p>
+              <button name="action_new_scan_location" type="object" string="Nouvel emplacement" class="btn-primary" invisible="not pre_scan_ready or state != 'Scan'"/>
+              <field name="location_team_choice_ids" invisible="1"/>
+              <field name="show_location_team_choice" invisible="1"/>
+              <field name="manual_scan_count_ids" widget="inventory_scan_lines" nolabel="1" invisible="not pre_scan_ready" readonly="state != 'Scan'" context="{'manual_location_session_id': id}">
+                <list editable="bottom" create="false" delete="false">
+                  <field name="location_workflow_state" column_invisible="1"/>
+                  <field name="rec_scan_id" column_invisible="1"/>
+                  <field name="location_scanned" column_invisible="1"/>
+                  <field name="location_rack" readonly="location_scanned or count_phase != 'first' or ok_done"/>
+                  <field name="branch_id" string="Équipe de scan" readonly="1" options="{'no_open': True}"/>
+                  <field name="emplacement" readonly="1"/>
+                  <field name="count_phase" readonly="1"/>
+                  <field name="count_round" column_invisible="1"/>
+                  <field name="ok_done" readonly="1"/>
+                  <field name="count_box_scanne" readonly="1"/>
+                  <field name="can_reset_scan" column_invisible="1"/>
+                  <button name="action_reset_scan" type="object" string="Réinitialiser le scan" invisible="not can_reset_scan" confirm="Les étiquettes de ce relevé seront définitivement supprimées. Les scans des autres équipes seront conservés. Refaire ce scan ?"/>
+                  <button name="action_view_form_inv" type="object" string="Scanner" invisible="location_workflow_state == 'draft' or ok_done or parent.state == 'Fermeture'"/>
+                </list>
+              </field>
+              <field name="unresolved_count_ids" nolabel="1" invisible="not unresolved_count_ids" readonly="state == 'Fermeture'" options="{'link': False, 'unlink': False, 'no_create': True, 'no_create_edit': True}">
+                <list editable="bottom" create="false" delete="false">
+                  <field name="can_resolve_alert" column_invisible="1"/>
+                  <field name="emplacement" readonly="1" />
+                  <field name="supervisor_choice_id" readonly="not can_resolve_alert" domain="['|', ('id', '=', id), ('origin_count_id', '=', id)]" />
+                  <field name="resolution_comment" readonly="not can_resolve_alert" />
+                  <button name="action_supervisor_accept" type="object" string="Valider le résultat" invisible="not can_resolve_alert"/>
+                  <button name="action_supervisor_rescan" type="object" string="Demander un nouveau scan" invisible="not can_resolve_alert"/>
+                </list>
+              </field>
+            </page>
+            <page string="Chatter du SCAN" name="scan_chatter" invisible="context.get('inventory_scan_menu', False)">
+              <widget name="inventory_session_chatter"/>
+            </page>
+          </notebook>
+          <field name="scans_completed" invisible="1" />
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="action_araymond_inventory" model="ir.actions.act_window">
+    <field name="context">{'inventory_scan_menu': False}</field>
+    <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_araymond_inventory_sessionsN_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_full_flow_session')})]" />
+  </record>
+  <record id="action_araymond_scan_inventory" model="ir.actions.act_window">
+    <field name="context">{'inventory_scan_menu': True}</field>
+    <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_scan_session_list')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_full_flow_session')})]" />
+  </record>
+  <function model="araymond.flow.team.config" name="_bind_existing_default_teams" />
+  <data noupdate="1">
+    <record id="flow_default_preparation" model="araymond.flow.template">
+      <field name="phase">preparation</field>
+      <field name="name">Préparer les zones, équipes et moyens d’inventaire</field>
+    </record>
+    <record id="flow_default_risk" model="araymond.flow.template">
+      <field name="phase">risk</field>
+      <field name="name">Identifier les risques et définir les actions</field>
+    </record>
+    <record id="flow_default_simulation" model="araymond.flow.template">
+      <field name="phase">simulation</field>
+      <field name="name">Vérifier le périmètre de stock à inventorier</field>
+    </record>
+    <record id="flow_default_day" model="araymond.flow.template">
+      <field name="phase">day</field>
+      <field name="name">Extraction du stock SAP LX03</field>
+      <field name="file_name">LX03</field>
+      <field name="is_lx03">1</field>
+    </record>
+    <record id="flow_default_export" model="araymond.flow.template">
+      <field name="phase">export</field>
+      <field name="name">Archiver les extractions des fichiers SAP</field>
+    </record>
+    <record id="flow_default_go" model="araymond.flow.template">
+      <field name="phase">go</field>
+      <field name="name">Autorisation de lancement de l’inventaire</field>
+    </record>
+    <record id="flow_default_pre" model="araymond.flow.template">
+      <field name="phase">pre</field>
+      <field name="name">Confirmer la disponibilité des zones et l’arrêt des mouvements</field>
+    </record>
+    <record id="flow_default_post" model="araymond.flow.template">
+      <field name="phase">post</field>
+      <field name="name">Contrôler les résultats et le rapprochement avant clôture</field>
+    </record>
+    <record id="flow_config_team_1" model="araymond.flow.team.config">
+      <field name="slot">1</field>
+    </record>
+    <record id="flow_config_team_2" model="araymond.flow.team.config">
+      <field name="slot">2</field>
+    </record>
+    <record id="flow_config_team_3" model="araymond.flow.team.config">
+      <field name="slot">3</field>
+    </record>
+  </data>
+</odoo>

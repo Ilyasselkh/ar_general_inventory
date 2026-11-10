@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="menu_flow_teams" model="ir.ui.menu"><field name="active" eval="False"/></record>
+  <record id="view_session_scan_team_assignments" model="ir.ui.view">
+    <field name="name">session.scan.team.assignments</field>
+    <field name="model">araymond.inventory.team</field>
+    <field name="arch" type="xml">
+      <form create="false" delete="false">
+        <sheet>
+          <h2><field name="name" readonly="1"/></h2>
+          <field name="session_id" invisible="1"/>
+          <field name="session_closed" invisible="1"/>
+          <field name="assignment_ids" context="{'default_team_id': id}" nolabel="1" readonly="session_closed">
+            <list editable="bottom"><field name="user_id" options="{'no_create': True}"/><field name="shift" required="1"/></list>
+          </field>
+        </sheet>
+      </form>
+    </field>
+  </record>
+  <record id="view_full_flow_session_assignments" model="ir.ui.view">
+    <field name="name">full.flow.session.assignments</field>
+    <field name="model">araymond.maininvsession</field>
+    <field name="inherit_id" ref="view_full_flow_session"/>
+    <field name="arch" type="xml">
+      <xpath expr="//field[@name='entry_user_ids']/ancestor::page[1]" position="replace">
+        <page string="Affectation d’équipes">
+          <notebook>
+            <page string="Équipe de saisie">
+              <field name="entry_assignment_ids" context="{'default_session_id': id, 'default_role': 'entry'}" nolabel="1" readonly="state == 'Fermeture'">
+                <list editable="bottom"><field name="user_id" options="{'no_create': True}"/><field name="shift" required="1"/></list>
+              </field>
+            </page>
+            <page string="Équipe de contrôle de scan">
+              <field name="control_assignment_ids" context="{'default_session_id': id, 'default_role': 'control'}" nolabel="1" readonly="state == 'Fermeture'">
+                <list editable="bottom"><field name="user_id" options="{'no_create': True}"/><field name="shift" required="1"/></list>
+              </field>
+            </page>
+            <page string="Équipe de scan">
+              <p class="text-muted">Affectez les personnes et leur shift à chacune des trois équipes. Ces affectations déterminent les personnes autorisées à scanner dans cette session.</p>
+              <field name="scan_assignment_team_ids" readonly="1" nolabel="1">
+                <list create="false" edit="false" delete="false"><field name="name"/><field name="member_summary"/><button name="action_open_assignments" type="object" string="Affecter les personnes" invisible="parent.state == 'Fermeture'"/></list>
+              </field>
+            </page>
+            <page string="Équipe de support">
+              <field name="sap_assignment_ids" context="{'default_session_id': id, 'default_role': 'sap'}" nolabel="1" readonly="state == 'Fermeture'">
+                <list editable="bottom"><field name="user_id" options="{'no_create': True}"/><field name="shift" required="1"/></list>
+              </field>
+            </page>
+          </notebook>
+        </page>
+      </xpath>
+    </field>
+  </record>
+</odoo>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_checklist_scope" model="ir.ui.view">
+    <field name="name">checklist.scope.form</field>
+    <field name="model">araymond.checklist.scope</field>
+    <field name="arch" type="xml">
+      <form string="Affecter les checklists">
+        <field name="session_id" invisible="1"/>
+        <field name="append_only" invisible="1"/>
+        <p invisible="append_only">Choisissez séparément les racks, niveaux et magasins. Les checklists avant et après scan seront affectées aux zones configurées correspondant aux trois critères.</p>
+        <p invisible="not append_only">Choisissez les racks, niveaux et magasins à ajouter. Les checklists déjà affectées resteront inchangées.</p>
+        <group>
+          <field name="rack_ids" widget="many2many_tags" domain="[('wizard_id', '=', id), ('kind', '=', 'rack')]" options="{'no_create': True, 'no_open': True}"/>
+          <field name="level_ids" widget="many2many_tags" domain="[('wizard_id', '=', id), ('kind', '=', 'level')]" options="{'no_create': True, 'no_open': True}"/>
+          <field name="warehouse_ids" widget="many2many_tags" domain="[('wizard_id', '=', id), ('kind', '=', 'warehouse')]" options="{'no_create': True, 'no_open': True}"/>
+        </group>
+        <footer>
+          <button name="action_apply" type="object" string="Ajouter les checklists" class="btn-primary" invisible="not append_only"/>
+          <button name="action_apply" type="object" string="Affecter les checklists" class="btn-primary" invisible="append_only"/>
+          <button string="Annuler" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

@@ -1,0 +1,413 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="ar_general_inventory.view_araymond_inventory_form" model="ir.ui.view">
+        <field name="name">araymond.inventory.form</field>
+        <field name="model">araymond.inventory</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button string="Raypro" name="action_raypro" type="object" class="btn-success" invisible="(not checklist_ready or zone_workflow_state == 'draft' or ok_done) or (automatic_zone and not full_flow_scan and zone_galia != 'Hybride')" />
+                    <button string="Reception" name="action_receptionSAP" type="object" class="btn-success" invisible="(not checklist_ready or zone_workflow_state == 'draft' or ok_done) or (automatic_zone and not full_flow_scan and zone_galia != 'Hybride')" />
+                    <button string="Logistique" name="action_logistique" type="object" class="btn-success" invisible="(not checklist_ready or zone_workflow_state == 'draft' or ok_done) or (automatic_zone and not full_flow_scan and zone_galia != 'Hybride')" />
+                    <button string="Manuel" name="action_Manuel" type="object" class="btn-success" invisible="(not checklist_ready or zone_workflow_state == 'draft' or ok_done) or (automatic_zone and not full_flow_scan and zone_galia != 'Hybride')" />
+                    <button string="Cloturer" name="action_close" type="object" class="btn-danger" invisible="not checklist_ready or zone_workflow_state == 'draft' or ok_done" />
+                    <button string="Écarts SAP / résultat final" name="action_show_ecarts_sapvs1scan" groups="base.group_system" type="object" class="btn-danger" />
+                    <button string="voir les SU disponibles" name="action_show_su_lxo3" groups="base.group_system" type="object" class="btn-danger" invisible="not checklist_ready or zone_workflow_state == 'draft' or ok_done" />
+                </header>
+                <sheet>
+                    <field name="checklist_ready" invisible="1" />
+                    <field name="zone_workflow_state" invisible="1" />
+                    <group>
+                        <field name="branch_id" readonly="1" />
+                        <field name="count_phase" readonly="1" />
+                    </group>
+                    <div class="alert alert-warning" invisible="checklist_ready and zone_workflow_state != 'draft'">Le scan est bloqué jusqu’à la validation de la checklist et au lancement des équipes.</div>
+                    <group invisible="not checklist_ready or zone_workflow_state == 'draft'">
+                        <group invisible="ok_done == True and is_admin == False">
+                            <field name="ok_done" invisible="is_admin == False" readonly="1" />
+                            <field name="is_admin" invisible="1" />
+                            <field name="typedegalia" invisible="1" />
+                            <field name="um2Active" invisible="1" />
+                            <field name="emplacementVidefieldCheck" invisible="1" />
+                            <field name="shared_scan" invisible="1"/>
+                            <field name="scan_first" invisible="1"/>
+                            <field name="location_scanned" invisible="1" force_save="1"/>
+                            <field name="location_rack" readonly="1" invisible="not shared_scan"/>
+                            <field name="ummondatory" readonly="1" invisible="not shared_scan"/>
+                            <field name="dummondatory" readonly="1" invisible="not shared_scan"/>
+                            <field name="scan_input" invisible="not shared_scan" readonly="ok_done"/>
+                            <field name="scanraypro" invisible="shared_scan or typedegalia != 'RayPro'" readonly="emplacementVide == True" />
+                            <field name="scanlog" invisible="shared_scan or typedegalia != 'logistique'" readonly="emplacementVide == True" />
+                            <field name="scanrecp" invisible="shared_scan or typedegalia != 'ReceptionSAP'" readonly="emplacementVide == True" />
+                            <field name="count_box_scanne" />
+                            <field name="emplacementVide" invisible="emplacementVidefieldCheck == False" />
+                            <field name="EmpAnomaly" />
+                            <field name="commentaire" />
+                            <field name="emplacement" readonly="shared_scan or typedegalia not in ('ReceptionSAP', 'Manuel', 'logistique')" force_save="1" />
+                            <field name="rec_scan_id" invisible="1" groups="base.group_system" />
+                            <field name="ref" invisible="typedegalia not in ('logistique', 'Manuel')" readonly="typedegalia not in ('Manuel',)" />
+                            <field name="qty" invisible="typedegalia not in ('logistique', 'Manuel')" readonly="typedegalia not in ('Manuel',)" />
+                            <field name="lot" invisible="typedegalia not in ('logistique', 'Manuel')" readonly="typedegalia not in ('Manuel',)" />
+                            <field name="hu" invisible="typedegalia not in ('logistique',)" readonly="typedegalia not in ('Manuel',)" />
+                            <field name="numEtiquet" invisible="typedegalia not in ('Manuel',)" readonly="typedegalia not in ('Manuel',)" />
+                            <field name="hu" readonly="1" invisible="typedegalia != 'ReceptionSAP'" />
+                            <field name="um" readonly="1" force_save="1" invisible="not shared_scan and typedegalia != 'RayPro'" />
+                            <field name="dum" force_save="1" readonly="shared_scan or typedegalia not in ('Manuel',)" invisible="not shared_scan and typedegalia != 'Manuel' and not dum" />
+                        </group>
+                        <group invisible="emplacementVide == True">
+                            <button string="Enregistrer" name="action_manuel_save" type="object" class="btn-warning" invisible="typedegalia not in ('Manuel',)" />
+                        </group>
+                        <group>
+                            <field name="filtered_su" nolabel="1" colspan="2" readonly="1">
+                                <list create="false" edit="false">
+                                    <field name="ref" />
+                                    <field name="qty" />
+                                    <field name="of" />
+                                    <field name="lot" />
+                                    <field name="hu" />
+                                    <field name="su" />
+                                    <field name="mode" />
+                                    <field name="typedegalia" />
+                                    <field name="dum" />
+                                    <button type="object" icon="fa-times" title="Supprimer" name="unlinkEt" />
+                                </list>
+                            </field>
+                        </group>
+                        <group>
+                        </group>
+                        <field name="rec_scan_id" invisible="is_admin == False" />
+                    </group>
+                    <field name="automatic_zone" invisible="1" />
+                    <field name="zone_galia" invisible="1" />
+                    <field name="full_flow_scan" invisible="1" />
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_sessionsN_tree" model="ir.ui.view">
+        <field name="name">araymond.maininvsession.tree</field>
+        <field name="model">araymond.maininvsession</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="resume" />
+                <field name="typesession" />
+                <field name="datesession" />
+                <field name="desc" />
+            </list>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_N_tree" model="ir.ui.view">
+        <field name="name">araymond.inventory.tree</field>
+        <field name="model">araymond.inventory</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="branch_id" />
+                <field name="count_phase" />
+                <field name="emplacement" />
+                <field name="ok_done" readonly="1" />
+                <field name="um" />
+                <field name="su" />
+            </list>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_parametres_main_form" model="ir.ui.view">
+        <field name="name">araymond.maininvsession.form</field>
+        <field name="model">araymond.maininvsession</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <field name="state" widget="statusbar" readonly="1" />
+                </header>
+                <sheet>
+                    <group invisible="state != 'CreationMain'">
+                        <group>
+                            <field name="typesession" readonly="1" force_save="1" />
+                        </group>
+                        <group>
+                            <field name="desc" />
+                        </group>
+                        <group>
+                            <field name="datesession" />
+                        </group>
+                        <group>
+                            <field name="lx03_file" filename="lx03_filename" widget="binary" />
+                            <field name="lx03_filename" invisible="1" />
+                            <field name="file_loaded" invisible="1" />
+                        </group>
+                        <group>
+                            <button string="Charger le fichier" name="action_load_file" type="object" class="btn-primary" />
+                            <button string="Suivant" name="action_creation" type="object" class="btn-success" invisible="file_loaded == False" />
+                            <field name="lxo3_records" colspan="3">
+                                <list editable="bottom">
+                                    <field name="type_magasin" />
+                                    <field name="emplacement" />
+                                    <field name="article" />
+                                    <field name="lot" />
+                                    <field name="stock_total" />
+                                    <field name="unite_qty_base" />
+                                    <field name="type_unite_stock" />
+                                    <field name="magasin" />
+                                    <field name="su" />
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                    <group invisible="state not in ('Creation', 'Checklist')">
+                        <group>
+                            <field name="resume" readonly="1" force_save="1" />
+                        </group>
+                        <group>
+                            <button string="modifier" name="action_mod_empl" groups="base.group_system" type="object" class="btn-danger" />
+                            <button string="Passer à la Check-list" name="action_scan_ok" type="object" class="btn-success" invisible="state != 'Creation'" />
+                        </group>
+                        <group colspan="2">
+                            <field name="sess_records" colspan="2" nolabel="1" class="o_ar_inventory_zone_table" context="{'form_view_ref': 'ar_general_inventory.view_araymond_inventory_session_form'}">
+                                <list editable="bottom">
+                                    <field name="rack" />
+                                    <field name="magasinSAP" />
+                                    <field name="magasinPhysique" />
+                                    <field name="nbrEmp" colspan="3" />
+                                    <field name="ummondatory" />
+                                    <field name="dummondatory" />
+                                    <field name="statusSession" />
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                    <group invisible="state != 'Scan'">
+                        <group>
+                            <field name="resume" readonly="1" force_save="1" />
+                        </group>
+                        <group>
+                            <button colspan="3" string="modifier" name="action_mod_empl" groups="base.group_system" type="object" class="btn-danger" />
+                        </group>
+                        <group>
+                            <h1 style="color: green;" colspan="3">Scan en cours</h1>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="ar_general_inventory.view_araymond_inventory_session_form" model="ir.ui.view">
+        <field name="name">araymond.invsession.form</field>
+        <field name="model">araymond.invsession</field>
+        <field name="arch" type="xml">
+            <form create="false" delete="false">
+                <header>
+                    <button colspan="3" string="modifier" name="action_mod_empl" groups="base.group_system" type="object" class="btn-success" />
+                    <button string="Cloturer" name="action_close_invsession" groups="base.group_system" type="object" class="btn-danger" />
+                    <field name="state" widget="statusbar" readonly="1" />
+                </header>
+                <sheet>
+                    <group invisible="state != 'Creation'">
+                        <group>
+                            <button string="Suivant" name="action_creation" type="object" class="btn-success" />
+                        </group>
+                        <group>
+                            <field name="magasinPhysique" />
+                            <field name="rack" />
+                            <field name="nbrEmp" />
+                            <field name="magasinSAP" />
+                            <field name="ummondatory" widget="boolean_toggle" />
+                            <field name="dummondatory" widget="boolean_toggle" />
+                            <field name="statusSession" widget="boolean_toggle" />
+                        </group>
+                    </group>
+                    <group invisible="state != 'Scan'">
+                        <group>
+                            <field name="resume" readonly="1" force_save="1" />
+                        </group>
+                        <group>
+                            <button colspan="3" string="nouvelle emp" name="action_create_empl" type="object" class="btn-warning" />
+                        </group>
+                        <field name="recs_scan" nolabel="1" readonly="1" colspan="2">
+                            <list create="false" delete="false" edit="false" editable="bottom">
+                                <field name="emplacement" />
+                                <field name="su" />
+                                <field name="ok_done" />
+                                <button string="Scanner" name="action_view_form_inv" type="object" alt="Scanner" class="btn btn-small btn-primary" />
+                            </list>
+                        </field>
+                    </group>
+                    <group invisible="state != 'Fermeture'">
+                        <group>
+                            <h1 style="color: green;" colspan="3">Scan Cloturé</h1>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_session_tree" model="ir.ui.view">
+        <field name="name">araymond.invsession.tree</field>
+        <field name="model">araymond.invsession</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="mainsession_desc" />
+                <field name="magasinPhysique" />
+                <field name="rack" />
+                <field name="magasinSAP" />
+                <field name="nbrEmp" />
+                <field name="statusSession" />
+            </list>
+        </field>
+    </record>
+    <record id="view_araymond_etiquette_tree" model="ir.ui.view">
+        <field name="name">araymond.etiquette.tree</field>
+        <field name="model">araymond.etiquette</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="su" />
+                <field name="ref" />
+                <field name="of" />
+                <field name="lot" />
+                <field name="hu" />
+                <field name="mode" />
+                <field name="typedegalia" />
+                <field name="qty" />
+                <field name="branch_id" />
+                <field name="count_phase" />
+            </list>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_parametres_ref_form" model="ir.ui.view">
+        <field name="name">araymond.ref.form</field>
+        <field name="model">araymond.ref</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="reference" />
+                    <field name="desc" />
+                    <field name="UniteM" />
+                    <field name="uc" />
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_parametres_ref_tree" model="ir.ui.view">
+        <field name="name">araymond.ref.tree</field>
+        <field name="model">araymond.ref</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="reference" />
+                <field name="desc" />
+                <field name="UniteM" />
+                <field name="uc" />
+            </list>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_imagestock" model="ir.ui.view">
+        <field name="name">araymond.imagestock.tree</field>
+        <field name="model">araymond.imagestock</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="typemagasin" />
+                <field name="emplacement" />
+                <field name="reference" />
+                <field name="lot" />
+                <field name="stocktotal" />
+                <field name="UniteM" />
+                <field name="magasin" />
+                <field name="emplVide" />
+                <field name="su" />
+            </list>
+        </field>
+    </record>
+    <record id="view_araymond_inventory_tree" model="ir.ui.view">
+        <field name="name">araymond.lxo3.tree</field>
+        <field name="model">araymond.lxo3</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="session_id" />
+                <field name="type_magasin" />
+                <field name="emplacement" />
+                <field name="article" />
+                <field name="lot" />
+                <field name="stock_total" />
+                <field name="unite_qty_base" />
+                <field name="type_unite_stock" />
+                <field name="magasin" />
+                <field name="su" />
+            </list>
+        </field>
+    </record>
+    <record id="action_araymond_inventory" model="ir.actions.act_window">
+        <field name="name">Sessions</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.maininvsession</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_araymond_inventory_sessionsN_tree" />
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_araymond_inventory_sessionsN_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_araymond_inventory_parametres_main_form')})]" />
+    </record>
+    <record id="action_araymond_inventory_etiquettes" model="ir.actions.act_window">
+        <field name="name">Etiquettes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.etiquette</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_araymond_inventory_lx03" model="ir.actions.act_window">
+        <field name="name">Lx03</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.lxo3</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_araymond_scan_inventory" model="ir.actions.act_window">
+        <field name="name">Scan par équipes</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.invsession</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('state', '!=', 'Fermeture'), ('statusSession', '=', True)]</field>
+    </record>
+    <record id="action_araymond_scanCloture_inventory" model="ir.actions.act_window">
+        <field name="name">Cloturé</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.invsession</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_araymond_inventory_session_tree" />
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'list', 'view_id': ref('view_araymond_inventory_session_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('view_araymond_inventory_session_form')})]" />
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+        <field name="domain">[('state', '=', 'Fermeture'), ('statusSession', '=', True)]</field>
+    </record>
+    <record id="action_araymond_scanInactive_inventory" model="ir.actions.act_window">
+        <field name="name">Inactive</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.invsession</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('statusSession', '=', False)]</field>
+    </record>
+    <record id="action_araymond_scanA_inventory" model="ir.actions.act_window">
+        <field name="name">Anomalies</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.inventory</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('EmpAnomaly', '=', True)]</field>
+    </record>
+    <record id="action_araymond_inventory_parametres" model="ir.actions.act_window">
+        <field name="name">References</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.ref</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_araymond_inventory_image" model="ir.actions.act_window">
+        <field name="name">Image de stock</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.imagestock</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_araymond_inventory_parametres_ref" model="ir.actions.act_window">
+        <field name="name">References</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">araymond.ref</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_inventory" name="Sessions" parent="menu_araymond_root" action="action_araymond_inventory" groups="base.group_system" sequence="20" />
+    <menuitem id="menu_inventory_scan" name="Scan" parent="menu_araymond_root" action="action_araymond_scan_inventory" sequence="20" />
+    <menuitem id="menu_inventory_scanCloture" name="Cloturé" parent="menu_araymond_root" action="action_araymond_scanCloture_inventory" sequence="20" />
+    <menuitem id="menu_inventory_scanInactive" name="Inactive" parent="menu_araymond_root" action="action_araymond_scanInactive_inventory" sequence="20" />
+    <menuitem id="menu_inventory_scanAno" name="Anomalies" parent="menu_araymond_root" action="action_araymond_scanA_inventory" sequence="20" />
+    <menuitem id="menu_references" name="Reference" parent="menu_araymond_root" action="action_araymond_inventory_parametres" groups="base.group_system" sequence="30" />
+    <menuitem id="menu_image" name="Image Stock" parent="menu_araymond_root" action="action_araymond_inventory_image" groups="base.group_system" sequence="30" />
+    <menuitem id="menu_galia" name="Etiquettes" parent="menu_araymond_root" action="action_araymond_inventory_etiquettes" groups="base.group_system" sequence="30" />
+    <menuitem id="menu_lxo3" name="LX03" parent="menu_araymond_root" groups="base.group_system" action="action_araymond_inventory_lx03" sequence="30" />
+</odoo>

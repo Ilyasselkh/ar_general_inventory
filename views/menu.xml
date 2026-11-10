@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_araymond_root"
+            name="AR - Inventaire général"
+            sequence="1"/>
+    
+
+</odoo>
